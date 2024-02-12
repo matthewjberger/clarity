@@ -1,6 +1,9 @@
 pub struct Viewer {
     angle: f32,
     rotating_triangle: std::sync::Arc<egui::mutex::Mutex<RotatingTriangle>>,
+
+    #[cfg(target_arch = "wasm32")]
+    file_receiver: Option<futures::channel::oneshot::Receiver<Vec<u8>>>,
 }
 
 impl Viewer {
@@ -12,6 +15,9 @@ impl Viewer {
             rotating_triangle: std::sync::Arc::new(egui::mutex::Mutex::new(
                 RotatingTriangle::new(gl).expect("Failed to create triangle"),
             )),
+
+            #[cfg(target_arch = "wasm32")]
+            file_receiver: None,
         }
     }
 
@@ -40,7 +46,42 @@ impl Viewer {
 impl eframe::App for Viewer {
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        #[cfg(target_arch = "wasm32")]
+        {
+            if let Some(file_receiver) = self.file_receiver.as_mut() {
+                if let Ok(Some(bytes)) = file_receiver.try_recv() {
+                    log::info!("File received: {} bytes", bytes.len());
+                }
+            }
+        }
+
         egui::CentralPanel::default().show(ctx, |ui| {
+            if ui.button("Pick file ...").clicked() {
+                #[cfg(not(target_arch = "wasm32"))]
+                if let Some(path) = rfd::FileDialog::new()
+                    .add_filter("GLTF / GLB", &["gltf", "glb"])
+                    .pick_file()
+                {
+                    log::info!("File picked: {path:#?}");
+                }
+
+                #[cfg(target_arch = "wasm32")]
+                {
+                    let (sender, receiver) = futures::channel::oneshot::channel::<Vec<u8>>();
+                    self.file_receiver = Some(receiver);
+                    let task = rfd::AsyncFileDialog::new()
+                        .add_filter("GLTF / GLB", &["gltf", "glb"])
+                        .pick_file();
+                    wasm_bindgen_futures::spawn_local(async {
+                        let file = task.await;
+                        if let Some(file) = file {
+                            let bytes = file.read().await;
+                            let _ = sender.send(bytes);
+                        }
+                    });
+                }
+            }
+
             egui::ScrollArea::both().auto_shrink(false).show(ui, |ui| {
                 egui::Frame::canvas(ui.style()).show(ui, |ui| {
                     self.custom_painting(ui);
@@ -184,3 +225,22 @@ impl RotatingTriangle {
         }
     }
 }
+
+#[cfg(target_arch = "wasm32")]
+pub struct ReceivedFile {
+    pub id: String,
+    pub bytes: Vec<u8>,
+    pub tag: String,
+}
+
+#[cfg(target_arch = "wasm32")]
+pub type FileSystemId = String;
+
+#[cfg(target_arch = "wasm32")]
+pub type FileSystemPath = String;
+
+#[cfg(target_arch = "wasm32")]
+pub type FileSystemBytes = Vec<u8>;
+
+#[cfg(target_arch = "wasm32")]
+pub type FileSystemTag = String;
