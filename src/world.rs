@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct World {
     pub default_scene_index: Option<usize>,
@@ -18,65 +20,6 @@ pub struct World {
 }
 
 impl World {
-    // pub fn add_child_node(
-    //     &mut self,
-    //     scene_index: usize,
-    //     parent_graph_node_index: petgraph::graph::NodeIndex,
-    //     node_index: usize,
-    // ) -> petgraph::graph::NodeIndex {
-    //     let scene = &mut self.scenes[scene_index];
-    //     let graph_node_index = scene.graph.add_node(node_index);
-    //     scene
-    //         .graph
-    //         .add_edge(parent_graph_node_index, graph_node_index, ());
-    //     graph_node_index
-    // }
-
-    // pub fn add_node(&mut self) -> usize {
-    //     let transform_index = self.transforms.len();
-    //     self.transforms.push(crate::world::Transform::default());
-
-    //     let metadata_index = self.metadata.len();
-    //     self.metadata.push(crate::world::NodeMetadata {
-    //         name: "Node".to_string(),
-    //     });
-
-    //     let node_index = self.nodes.len();
-    //     let node = crate::world::Node {
-    //         transform_index,
-    //         metadata_index,
-    //         camera_index: None,
-    //         mesh_index: None,
-    //         light_index: None,
-    //         rigid_body_index: None,
-    //         primitive_mesh_index: None,
-    //     };
-    //     self.nodes.push(node);
-    //     node_index
-    // }
-
-    // pub fn add_camera_to_node(&mut self, node_index: usize) {
-    //     let node = &mut self.nodes[node_index];
-    //     let camera = crate::world::Camera::default();
-    //     let transform = &mut self.transforms[node.transform_index];
-    //     transform.translation = camera.orientation.position();
-    //     transform.rotation = camera.orientation.look_at_offset();
-    //     let camera_index = self.cameras.len();
-    //     self.cameras.push(camera);
-    //     node.camera_index = Some(camera_index);
-    // }
-
-    // pub fn add_camera_to_scenegraph(&mut self, scene_index: usize) {
-    //     let node_index = self.add_node();
-    //     self.add_camera_to_node(node_index);
-    //     let camera_graph_node_index =
-    //         self.add_child_node(scene_index, petgraph::graph::NodeIndex::new(0), node_index);
-    //     self.scenes[scene_index].default_camera_graph_node_index = Some(camera_graph_node_index);
-    //     let node = &self.nodes[node_index];
-    //     let metadata = &mut self.metadata[node.metadata_index];
-    //     metadata.name = "Main Camera".to_string();
-    // }
-
     pub fn global_transform(
         &self,
         scenegraph: &SceneGraph,
@@ -95,30 +38,6 @@ impl World {
             None => transform,
         }
     }
-
-    // pub fn global_isometry(
-    //     &self,
-    //     scenegraph: &SceneGraph,
-    //     graph_node_index: petgraph::graph::NodeIndex,
-    // ) -> (nalgebra_glm::Vec3, nalgebra_glm::Quat) {
-    //     let node_index = scenegraph[graph_node_index];
-    //     let transform_index = self.nodes[node_index].transform_index;
-    //     let transform = self.transforms[transform_index];
-    //     match scenegraph
-    //         .neighbors_directed(graph_node_index, petgraph::Direction::Incoming)
-    //         .next()
-    //     {
-    //         Some(parent_node_index) => {
-    //             let (parent_translation, parent_rotation) =
-    //                 self.global_isometry(scenegraph, parent_node_index);
-    //             (
-    //                 parent_translation + transform.translation,
-    //                 parent_rotation * transform.rotation,
-    //             )
-    //         }
-    //         None => (transform.translation, transform.rotation),
-    //     }
-    // }
 }
 
 #[repr(C)]
