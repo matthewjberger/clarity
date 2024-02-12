@@ -2,6 +2,7 @@
 
 mod app;
 mod gltf;
+mod scene;
 mod world;
 
 pub use app::Viewer;
