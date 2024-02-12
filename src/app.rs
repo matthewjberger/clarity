@@ -1,6 +1,9 @@
+use crate::world::World;
+
 pub struct Viewer {
     angle: f32,
     rotating_triangle: std::sync::Arc<egui::mutex::Mutex<RotatingTriangle>>,
+    world: World,
 
     #[cfg(target_arch = "wasm32")]
     file_receiver: Option<futures::channel::oneshot::Receiver<Vec<u8>>>,
@@ -15,6 +18,7 @@ impl Viewer {
             rotating_triangle: std::sync::Arc::new(egui::mutex::Mutex::new(
                 RotatingTriangle::new(gl).expect("Failed to create triangle"),
             )),
+            world: World::default(),
 
             #[cfg(target_arch = "wasm32")]
             file_receiver: None,
