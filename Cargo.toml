@@ -22,8 +22,13 @@ rfd = "0.13.0"
 serde = { version = "1", features = ["derive"] }
 futures = "0.3.30"
 petgraph = { version = "0.6.4", features = ["serde-1"] }
-nalgebra-glm = { version = "0.18.0", features = ["serde-serialize", "convert-bytemuck"] }
+nalgebra-glm = { version = "0.18.0", features = [
+    "serde-serialize",
+    "convert-bytemuck",
+] }
 bytemuck = { version = "1.14.3", features = ["derive"] }
+gltf = { version = "1.4.0", features = ["KHR_lights_punctual", "names"] }
+image = "0.24.8"
 
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -1,9 +1,12 @@
 use crate::world::World;
 
+#[cfg(feature = "wasm32")]
+use crate::gltf::import_gltf_slice;
+
 pub struct Viewer {
     angle: f32,
     rotating_triangle: std::sync::Arc<egui::mutex::Mutex<RotatingTriangle>>,
-    world: World,
+    _world: World,
 
     #[cfg(target_arch = "wasm32")]
     file_receiver: Option<futures::channel::oneshot::Receiver<Vec<u8>>>,
@@ -18,7 +21,7 @@ impl Viewer {
             rotating_triangle: std::sync::Arc::new(egui::mutex::Mutex::new(
                 RotatingTriangle::new(gl).expect("Failed to create triangle"),
             )),
-            world: World::default(),
+            _world: World::default(),
 
             #[cfg(target_arch = "wasm32")]
             file_receiver: None,
@@ -55,6 +58,12 @@ impl eframe::App for Viewer {
             if let Some(file_receiver) = self.file_receiver.as_mut() {
                 if let Ok(Some(bytes)) = file_receiver.try_recv() {
                     log::info!("File received: {} bytes", bytes.len());
+                    let world = crate::gltf::import_gltf_slice(&bytes);
+                    log::info!(
+                        "Found {} meshes and {} nodes",
+                        world.meshes.len(),
+                        world.nodes.len()
+                    );
                 }
             }
         }
@@ -67,6 +76,7 @@ impl eframe::App for Viewer {
                     .pick_file()
                 {
                     log::info!("File picked: {path:#?}");
+                    let _world = crate::gltf::import_gltf_file(path);
                 }
 
                 #[cfg(target_arch = "wasm32")]
